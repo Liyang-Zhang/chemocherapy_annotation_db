@@ -1,0 +1,12 @@
+# Translations for the Chemotherapy annotation database project
+# Copyright (C) 2024 Liyang Zhang
+# Liyang Zhang <1219187848@qq.com>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1.0\n"
+"Language: en-US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"

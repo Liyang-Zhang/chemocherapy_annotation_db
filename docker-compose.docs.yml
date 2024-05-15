@@ -1,0 +1,16 @@
+services:
+  docs:
+    image: chemocherapy_annotation_db_local_docs
+    container_name: chemocherapy_annotation_db_local_docs
+    build:
+      context: .
+      dockerfile: ./compose/local/docs/Dockerfile
+    env_file:
+      - ./.envs/.local/.django
+    volumes:
+      - ./docs:/docs:z
+      - ./config:/app/config:z
+      - ./chemocherapy_annotation_db:/app/chemocherapy_annotation_db:z
+    ports:
+      - '9000:9000'
+    command: /start-docs
