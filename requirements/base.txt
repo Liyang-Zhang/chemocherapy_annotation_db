@@ -14,3 +14,10 @@ django-crispy-forms==2.1  # https://github.com/django-crispy-forms/django-crispy
 crispy-bootstrap5==2024.2  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
 django-webpack-loader==3.1.0  # https://github.com/django-webpack/django-webpack-loader
+djangorestframework==3.15.1 # https://github.com/encode/django-rest-framework
+drf-spectacular==0.27.2
+
+# Pandas
+# --------------------------------------------------
+pandas==2.2.2
+openpyxl==3.1.2

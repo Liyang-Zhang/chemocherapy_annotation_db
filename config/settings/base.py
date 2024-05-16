@@ -77,12 +77,16 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.mfa",
     "allauth.socialaccount",
+    "rest_framework",
+    "rest_framework.authtoken",
     "webpack_loader",
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
     "chemocherapy_annotation_db.users",
     # Your stuff: custom apps go here
+    "chemocherapy_annotation_db.chemo_corpora",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
