@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=chemocherapy_annotation_db
+POSTGRES_USER=aMoDpqxHFwApKjREPMvGywBWipBThIXx
+POSTGRES_PASSWORD=pXQ3dZkA4OqddxY4FCbHkfWKhIp0c0hJouRNMsJDKArEemwm1q4V6pPDBTq5OJ47
