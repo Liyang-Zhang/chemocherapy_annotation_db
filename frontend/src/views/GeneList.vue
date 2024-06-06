@@ -4,7 +4,7 @@
       <v-card-title>
         ChemoGene List
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="openDialog('add')">Add New</v-btn>
+        <v-btn color="primary" @click="openDialog">Add New</v-btn>
         <v-btn color="primary" @click="toggleUploadDialog">Upload Excel</v-btn>
       </v-card-title>
       <v-data-table
@@ -12,14 +12,13 @@
         :items="chemoGenes"
         :search="search"
         class="elevation-1"
-        @click:row="openDialog('edit', $event)"
       >
         <template v-slot:top>
           <v-text-field v-model="search" label="Search" class="mx-4"></v-text-field>
         </template>
         <template v-slot:[`item.actions`]="{ item }">
-          <v-icon small @click="openDialog('edit', item)">mdi-pencil</v-icon>
-          <v-icon small @click="deleteGene(item.id)">mdi-delete</v-icon>
+          <v-icon small @click="editItem(item)">mdi-pencil</v-icon>
+          <v-icon small @click="deleteItem(item)">mdi-delete</v-icon>
         </template>
       </v-data-table>
     </v-card>
@@ -63,6 +62,18 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="dialogDelete" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
+          <v-btn color="blue darken-1" text @click="deleteItemConfirm">OK</v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -80,15 +91,21 @@ export default {
       search: '',
       dialog: false,
       uploadDialog: false,
+      dialogDelete: false,
       dialogMode: '',
       headers: [
-        { text: 'ID', value: 'id' },
-        { text: 'Gene Name', value: 'gene_name' },
-        { text: 'Description', value: 'description' },
-        { text: 'Actions', value: 'actions', sortable: false },
+        { title: 'ID', align: 'start', key: 'id' },
+        { title: 'Gene Symbol', align: 'end', key: 'gene_name' },
+        { title: 'Description', align: 'end', key: 'description' },
+        { title: 'Actions', key: 'actions', sortable: false },
       ],
       editedIndex: -1,
       editedItem: {
+        id: '',
+        gene_name: '',
+        description: ''
+      },
+      defaultItem: {
         id: '',
         gene_name: '',
         description: ''
@@ -97,7 +114,6 @@ export default {
   },
   created() {
     this.fetchGenes();
-    this.printCookies();
   },
   methods: {
     fetchGenes() {
@@ -109,22 +125,34 @@ export default {
           console.error('There was an error!', error);
         });
     },
-    openDialog(mode, item = { id: '', gene_name: '', description: '' }) {
-      this.dialogMode = mode;
-      if (mode === 'edit') {
-        this.editedIndex = this.chemoGenes.indexOf(item);
-        this.editedItem = { ...item };
-      } else {
-        this.editedItem = { id: '', gene_name: '', description: '' };
-      }
+    openDialog() {
+      this.dialogMode = 'add';
       this.dialog = true;
+    },
+    editItem(item) {
+      this.dialogMode = 'edit';
+      this.editedIndex = this.chemoGenes.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialog = true;
+    },
+    deleteItem(item) {
+      this.editedIndex = this.chemoGenes.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialogDelete = true;
     },
     closeDialog() {
       this.dialog = false;
-      this.editedItem = { id: '', gene_name: '', description: '' };
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
-    toggleUploadDialog() {
-      this.uploadDialog = !this.uploadDialog;
+    closeDelete() {
+      this.dialogDelete = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
     saveGene() {
       const csrfToken = this.$cookies.get('csrftoken');
@@ -158,28 +186,25 @@ export default {
           });
       }
     },
-    deleteGene(id) {
+    deleteItemConfirm() {
       const csrfToken = this.$cookies.get('csrftoken');
-      this.$axios.delete(`/api/Chemogene/${id}/`, {
+      this.$axios.delete(`/api/Chemogene/${this.editedItem.id}/`, {
         headers: {
-          'X-CSRFToken': csrfToken
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/json'
         }
       })
-      .then(() => {
-        const index = this.chemoGenes.findIndex(gene => gene.id === id);
-        this.chemoGenes.splice(index, 1);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+        .then(() => {
+          this.chemoGenes.splice(this.editedIndex, 1);
+          this.closeDelete();
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
-    printCookies() {
-      const allCookies = this.$cookies.keys();
-      console.log('All cookies:', allCookies);
-      allCookies.forEach(cookieName => {
-        console.log(`${cookieName}:`, this.$cookies.get(cookieName));
-      });
-    }
+    toggleUploadDialog() {
+      this.uploadDialog = !this.uploadDialog;
+    },
   }
 }
 </script>
