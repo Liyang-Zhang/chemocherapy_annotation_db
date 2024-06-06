@@ -10,6 +10,7 @@ entryPoints:
       redirections:
         entryPoint:
           to: web-secure
+          scheme: https
 
   web-secure:
     # https
@@ -25,10 +26,15 @@ certificatesResolvers:
       httpChallenge:
         entryPoint: web
 
+tls:
+  certificates:
+    - certFile: "/etc/traefik/certs/cert.pem"
+      keyFile: "/etc/traefik/certs/key.pem"
+
 http:
   routers:
     web-secure-router:
-      rule: 'Host(`example.com`) || Host(`www.example.com`)'
+      rule: 'HostRegexp(`{subdomain:[a-zA-Z0-9-]+}.shjy.kingmed.internal`)'
       entryPoints:
         - web-secure
       middlewares:
@@ -39,7 +45,7 @@ http:
         certResolver: letsencrypt
 
     web-media-router:
-      rule: '(Host(`example.com`) || Host(`www.example.com`)) && PathPrefix(`/media/`)'
+      rule: 'HostRegexp(`{subdomain:[a-zA-Z0-9-]+}.shjy.kingmed.internal`) && PathPrefix(`/media/`)'
       entryPoints:
         - web-secure
       middlewares:
@@ -47,6 +53,7 @@ http:
       service: django-media
       tls:
         certResolver: letsencrypt
+
 
   middlewares:
     csrf:
@@ -59,12 +66,17 @@ http:
     django:
       loadBalancer:
         servers:
-          - url: http://django:5000
+          - url: http://django:8000
 
     django-media:
       loadBalancer:
         servers:
           - url: http://nginx:80
+
+    frontend-service:
+      loadBalancer:
+        servers:
+          - url: http://nginx:80  # Assuming Nginx is serving your frontend
 
 providers:
   # https://doc.traefik.io/traefik/master/providers/file/

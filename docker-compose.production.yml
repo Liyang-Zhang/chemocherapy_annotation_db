@@ -9,8 +9,9 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
-
     image: chemocherapy_annotation_db_production_django
+    environment:
+      DATABASE_URL: "postgres://aMoDpqxHFwApKjREPMvGywBWipBThIXx:FQ3FKQOrH0dGOFNC9hr2y67kJJnmkW7lSXynmNhIsiKAPYSnUsspiXe6zSYG33Vg@postgres:5432/chemocherapy_annotation_db"
     volumes:
       - production_django_media:/app/chemocherapy_annotation_db/media
     depends_on:
@@ -20,6 +21,8 @@ services:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     command: /start
+    ports:
+      - "8000:8000"  # 添加端口映射
 
   postgres:
     build:
@@ -41,9 +44,14 @@ services:
       - django
     volumes:
       - production_traefik:/etc/traefik/acme
+      - "./certs/cert.pem:/etc/traefik/certs/cert.pem"
+      - "./certs/key.pem:/etc/traefik/certs/key.pem"
+    command:
+      - "--api.insecure=true"
+      - "--providers.file.filename=/etc/traefik/traefik.yml"
     ports:
-      - '0.0.0.0:80:80'
-      - '0.0.0.0:443:443'
+      - '0.0.0.0:8081:80'
+      - '0.0.0.0:8443:443'
 
   redis:
     image: docker.io/redis:6
@@ -57,3 +65,10 @@ services:
       - django
     volumes:
       - production_django_media:/usr/share/nginx/media:ro
+      - ./compose/production/nginx:/etc/nginx/conf.d  # 挂载Nginx配置文件
+      - "./certs/cert.pem:/etc/traefik/certs/cert.pem"
+      - "./certs/key.pem:/etc/traefik/certs/key.pem"
+      - ./frontend/dist:/usr/share/nginx/html:ro  # 挂载构建后的前端文件
+    ports:
+      - '8080:80'
+      - '8444:443'

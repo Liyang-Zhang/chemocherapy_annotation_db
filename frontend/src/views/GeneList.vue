@@ -14,11 +14,7 @@
         @click:row="openDialog('edit', $event)"
       >
         <template v-slot:top>
-          <v-text-field
-            v-model="search"
-            label="Search"
-            class="mx-4"
-          ></v-text-field>
+          <v-text-field v-model="search" label="Search" class="mx-4"></v-text-field>
         </template>
         <template v-slot:[`item.actions`]="{ item }">
           <v-icon small @click="openDialog('edit', item)">mdi-pencil</v-icon>
@@ -55,8 +51,6 @@
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
   name: 'GeneList',
   data() {
@@ -81,10 +75,11 @@ export default {
   },
   created() {
     this.fetchGenes();
+    this.printCookies();
   },
   methods: {
     fetchGenes() {
-      axios.get('/api/Chemogene/')
+      this.$axios.get('/api/Chemogene/')
         .then(response => {
           this.chemoGenes = response.data;
         })
@@ -107,26 +102,60 @@ export default {
       this.editedItem = { id: '', gene_name: '', description: '' };
     },
     saveGene() {
+      const csrfToken = this.$cookies.get('csrftoken');
+      console.log('CSRF Token in saveGene:', csrfToken);
       if (this.dialogMode === 'edit') {
-        axios.put(`/api/Chemogene/${this.editedItem.id}/`, this.editedItem)
+        this.$axios.put(`/api/Chemogene/${this.editedItem.id}/`, this.editedItem, {
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+          }
+        })
           .then(() => {
             Object.assign(this.chemoGenes[this.editedIndex], this.editedItem);
             this.closeDialog();
+          })
+          .catch(error => {
+            console.error(error);
           });
       } else {
-        axios.post('/api/Chemogene/', this.editedItem)
+        this.$axios.post('/api/Chemogene/', this.editedItem, {
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+          }
+        })
           .then(response => {
             this.chemoGenes.push(response.data);
             this.closeDialog();
+          })
+          .catch(error => {
+            console.error(error);
           });
       }
     },
     deleteGene(id) {
-      axios.delete(`/api/Chemogene/${id}/`)
-        .then(() => {
-          const index = this.chemoGenes.findIndex(gene => gene.id === id);
-          this.chemoGenes.splice(index, 1);
-        });
+      const csrfToken = this.$cookies.get('csrftoken');
+      console.log('CSRF Token in deleteGene:', csrfToken);
+      this.$axios.delete(`/api/Chemogene/${id}/`, {
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      })
+      .then(() => {
+        const index = this.chemoGenes.findIndex(gene => gene.id === id);
+        this.chemoGenes.splice(index, 1);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    },
+    printCookies() {
+      const allCookies = this.$cookies.keys();
+      console.log('All cookies:', allCookies);
+      allCookies.forEach(cookieName => {
+        console.log(`${cookieName}:`, this.$cookies.get(cookieName));
+      });
     }
   }
 }
