@@ -5,6 +5,7 @@
         ChemoGene List
         <v-spacer></v-spacer>
         <v-btn color="primary" @click="openDialog('add')">Add New</v-btn>
+        <v-btn color="primary" @click="toggleUploadDialog">Upload Excel</v-btn>
       </v-card-title>
       <v-data-table
         :headers="headers"
@@ -47,17 +48,38 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="uploadDialog" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Upload Excel File</span>
+        </v-card-title>
+        <v-card-text>
+          <upload-excel @fileUploaded="fetchGenes"/>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="toggleUploadDialog">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
+import UploadExcel from '../components/UploadExcel.vue';
+
 export default {
   name: 'GeneList',
+  components: {
+    UploadExcel
+  },
   data() {
     return {
       chemoGenes: [],
       search: '',
       dialog: false,
+      uploadDialog: false,
       dialogMode: '',
       headers: [
         { text: 'ID', value: 'id' },
@@ -101,9 +123,11 @@ export default {
       this.dialog = false;
       this.editedItem = { id: '', gene_name: '', description: '' };
     },
+    toggleUploadDialog() {
+      this.uploadDialog = !this.uploadDialog;
+    },
     saveGene() {
       const csrfToken = this.$cookies.get('csrftoken');
-      console.log('CSRF Token in saveGene:', csrfToken);
       if (this.dialogMode === 'edit') {
         this.$axios.put(`/api/Chemogene/${this.editedItem.id}/`, this.editedItem, {
           headers: {
@@ -136,7 +160,6 @@ export default {
     },
     deleteGene(id) {
       const csrfToken = this.$cookies.get('csrftoken');
-      console.log('CSRF Token in deleteGene:', csrfToken);
       this.$axios.delete(`/api/Chemogene/${id}/`, {
         headers: {
           'X-CSRFToken': csrfToken
