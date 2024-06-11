@@ -6,6 +6,7 @@
         <v-spacer></v-spacer>
         <v-btn color="primary" @click="openDialog">Add New</v-btn>
         <v-btn color="primary" @click="toggleUploadDialog">Upload Excel</v-btn>
+        <v-btn color="primary" @click="downloadExcel">Download Excel</v-btn>
       </v-card-title>
       <v-data-table
         :headers="headers"
@@ -32,10 +33,25 @@
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field v-model="editedItem.gene_name" label="Gene Name"></v-text-field>
+                <v-text-field v-model="editedItem.hgnc_id" label="HGNC ID"></v-text-field>
               </v-col>
               <v-col cols="12">
-                <v-textarea v-model="editedItem.description" label="Description"></v-textarea>
+                <v-text-field v-model="editedItem.gene_symbol" label="Gene Symbol"></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-textarea v-model="editedItem.description_cn" label="Description (CN)"></v-textarea>
+              </v-col>
+              <v-col cols="12">
+                <v-textarea v-model="editedItem.description_en" label="Description (EN)"></v-textarea>
+              </v-col>
+              <v-col cols="12">
+                <v-textarea v-model="editedItem.created_at" label="Created at"></v-textarea>
+              </v-col>
+              <v-col cols="12">
+                <v-textarea v-model="editedItem.updated_at" label="Updated at"></v-textarea>
+              </v-col>
+              <v-col cols="12">
+                <v-select v-model="editedItem.status" :items="statuses" label="Status"></v-select>
               </v-col>
             </v-row>
           </v-container>
@@ -79,6 +95,9 @@
 
 <script>
 import UploadExcel from '../components/UploadExcel.vue';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
+// import XLSX from 'xlsx';
 
 export default {
   name: 'GeneList',
@@ -93,22 +112,31 @@ export default {
       uploadDialog: false,
       dialogDelete: false,
       dialogMode: '',
+      statuses: ['Active', 'Inactive'],
       headers: [
-        { title: 'ID', align: 'start', key: 'id' },
-        { title: 'Gene Symbol', align: 'end', key: 'gene_name' },
-        { title: 'Description', align: 'end', key: 'description' },
+        { title: 'HGNC ID', align: 'start', key: 'hgnc_id' },
+        { title: 'Gene Symbol', align: 'end', key: 'gene_symbol' },
+        { title: 'Description (CN)', align: 'end', key: 'description_cn' },
+        { title: 'Description (EN)', align: 'end', key: 'description_en' },
+        { title: 'Created At', align: 'end', key: 'created_at' },
+        { title: 'Updated At', align: 'end', key: 'updated_at' },
+        { title: 'Status', align: 'end', key: 'status' },
         { title: 'Actions', key: 'actions', sortable: false },
       ],
       editedIndex: -1,
       editedItem: {
-        id: '',
-        gene_name: '',
-        description: ''
+        hgnc_id: '',
+        gene_symbol: '',
+        description_cn: '',
+        description_en: '',
+        status: '',
       },
       defaultItem: {
-        id: '',
-        gene_name: '',
-        description: ''
+        hgnc_id: '',
+        gene_symbol: '',
+        description_cn: '',
+        description_en: '',
+        status: '',
       },
     };
   },
@@ -188,6 +216,7 @@ export default {
     },
     deleteItemConfirm() {
       const csrfToken = this.$cookies.get('csrftoken');
+      console.log('Deleting item:', this.editedItem.id); // Log the ID for debugging
       this.$axios.delete(`/api/Chemogene/${this.editedItem.id}/`, {
         headers: {
           'X-CSRFToken': csrfToken,
@@ -204,6 +233,25 @@ export default {
     },
     toggleUploadDialog() {
       this.uploadDialog = !this.uploadDialog;
+    },
+    downloadExcel() {
+      try {
+        const ws = XLSX.utils.json_to_sheet(this.chemoGenes);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "ChemoGenes");
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+        // 生成当前日期和时间作为后缀
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+        const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-'); // HH-MM-SS
+
+        const fileName = `ChemoGenes_${dateStr}_${timeStr}.xlsx`;
+
+        saveAs(new Blob([wbout], { type: 'application/octet-stream' }), fileName);
+      } catch (error) {
+        console.error('Error downloading Excel:', error);
+      }
     },
   }
 }

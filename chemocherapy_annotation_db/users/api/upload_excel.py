@@ -27,9 +27,15 @@ class UploadExcel(APIView):
             with transaction.atomic():
                 for _, row in df.iterrows():
                     Chemogene.objects.update_or_create(
-                        gene_name=row["gene"],
-                        description=row["description"],
-                        # other fields
+                        hgnc_id=row["hgnc_id"],
+                        defaults={
+                            "gene_symbol": row["gene_symbol"],
+                            "description_cn": row["description_cn"],
+                            "description_en": row["description_en"],
+                            "created_at": row["created_at"],
+                            "updated_at": row["updated_at"],
+                            "status": row["status"],
+                        },
                     )
         except Exception as e:
             return Response(

@@ -27,10 +27,15 @@ export default {
       const formData = new FormData();
       formData.append('file', this.file);
 
+      const csrfToken = this.$cookies.get('csrftoken');  // Assuming you are using vue-cookies to handle cookies
+
       try {
         await fetch('/api/upload_excel/', {
           method: 'POST',
           body: formData,
+          headers: {
+            'X-CSRFToken': csrfToken,
+          },
         });
         this.$emit('fileUploaded');
       } catch (error) {

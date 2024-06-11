@@ -14,6 +14,7 @@ services:
       DATABASE_URL: "postgres://aMoDpqxHFwApKjREPMvGywBWipBThIXx:FQ3FKQOrH0dGOFNC9hr2y67kJJnmkW7lSXynmNhIsiKAPYSnUsspiXe6zSYG33Vg@postgres:5432/chemocherapy_annotation_db"
     volumes:
       - production_django_media:/app/chemocherapy_annotation_db/media
+      - ./chemocherapy_annotation_db/chemo_corpora:/app/chemocherapy_annotation_db/chemo_corpora
     depends_on:
       - postgres
       - redis
