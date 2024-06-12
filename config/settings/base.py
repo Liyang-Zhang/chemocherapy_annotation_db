@@ -300,6 +300,7 @@ WEBPACK_LOADER = {
 # CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
+    "https://r760-1.shjy.kingmed.internal:8444",
 ]
 # Allow all origins
 # CORS_ALLOW_ALL_ORIGINS = True

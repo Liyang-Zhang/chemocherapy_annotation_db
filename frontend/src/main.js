@@ -27,6 +27,20 @@ if (csrfToken) {
   console.error('CSRF token is null or undefined!');
 }
 
+// Add a request interceptor
+axios.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
+
 app.config.globalProperties.$axios = axios;
 
 app.use(router)
